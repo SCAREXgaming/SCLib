@@ -83,10 +83,12 @@ dependencies {
 
 
 // Changelog
-task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) << {
-	filePath = "CHANGELOG.html"
-	untaggedName = "Current release ${project.version}"
-	templateContent = file('changelog.mustache').getText('UTF-8')
+plugins.withType(se.bjurr.gitchangelog.plugin.gradle.GitChangelogGradlePlugin.class) {
+    task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+        filePath = "CHANGELOG.html"
+        untaggedName = "Current release ${project.version}"
+        templateContent = file('changelog.mustache').getText('UTF-8')
+    }
 }
 
 // Artifacts
