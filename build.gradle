@@ -24,7 +24,7 @@ plugins {
 apply plugin: 'forge'
 apply plugin: 'co.riiid.gradle'
 
-group= "fr.scarex.sclib"
+group = "com.github.SCAREXgaming"
 archivesBaseName = "SCLib"
 
 minecraft {
@@ -131,3 +131,5 @@ github {
         "build/libs/${archivesBaseName}-${version}.jar"
     ]
 }
+
+tasks.install.dependsOn('build')
