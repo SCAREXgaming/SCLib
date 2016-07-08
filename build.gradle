@@ -17,9 +17,9 @@ buildscript {
     }
 }
 
-plugins {
+/*plugins {
 	id "se.bjurr.gitchangelog.git-changelog-gradle-plugin" version "1.32"
-}
+}*/
 
 apply plugin: 'forge'
 apply plugin: 'maven'
@@ -83,11 +83,11 @@ dependencies {
 
 
 // Changelog
-task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+/*task makeChangelog(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
 	filePath = "CHANGELOG.html"
 	untaggedName = "Current release ${project.version}"
 	templateContent = file('changelog.mustache').getText('UTF-8')
-}
+}*/
 
 // Artifacts
 task deobfJar(type: Jar) {
