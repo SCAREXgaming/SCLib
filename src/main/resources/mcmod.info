@@ -1,0 +1,16 @@
+[
+{
+  "modid": "sclib",
+  "name": "SCAREX Library",
+  "description": "Base of my mods",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["SCAREX"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
