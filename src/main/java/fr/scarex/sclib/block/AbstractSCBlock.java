@@ -3,12 +3,12 @@ package fr.scarex.sclib.block;
 import java.util.ArrayList;
 import java.util.List;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import fr.scarex.sclib.IRegister;
-import fr.scarex.sclib.SCLib;
 import fr.scarex.sclib.client.ClientProxy;
 import fr.scarex.sclib.tileentity.AbstractSCTileEntity;
 import fr.scarex.sclib.tileentity.IOwneable;
@@ -28,10 +28,12 @@ import net.minecraftforge.common.ForgeHooks;
  */
 public abstract class AbstractSCBlock extends Block implements IRegister
 {
+    protected String modid;
+
     protected AbstractSCBlock(Material m) {
         super(m);
     }
-    
+
     @Override
     public void register() {
         GameRegistry.registerBlock(this, this.getItemBlock(), this.getName());
@@ -46,7 +48,7 @@ public abstract class AbstractSCBlock extends Block implements IRegister
 
     @Override
     public String getUnlocalizedName() {
-        return "tile." + SCLib.MODID + "_" + this.getName();
+        return "tile." + modid + "_" + this.getName();
     }
 
     public Class getTileEntityClass() {
@@ -60,6 +62,7 @@ public abstract class AbstractSCBlock extends Block implements IRegister
 
     @Override
     public void init() {
+        this.modid = Loader.instance().activeModContainer().getModId();
         this.setBlockName(this.getName());
     }
 
@@ -79,7 +82,7 @@ public abstract class AbstractSCBlock extends Block implements IRegister
 
     @Override
     protected String getTextureName() {
-        return this.hasSpecialRender() ? "" : SCLib.MODID + ":" + this.getName();
+        return this.hasSpecialRender() ? "" : modid + ":" + this.getName();
     }
 
     @Override
