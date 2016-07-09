@@ -25,7 +25,7 @@ apply plugin: 'forge'
 apply plugin: 'maven'
 apply plugin: 'co.riiid.gradle'
 
-group = "com.github.SCAREXgaming"
+group = "fr.scarex"
 archivesBaseName = "SCLib"
 
 minecraft {
