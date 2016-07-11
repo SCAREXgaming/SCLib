@@ -40,6 +40,14 @@ minecraft {
     replaceIn "SCLib.java"
 }
 
+sourceSets {
+    test {
+        java {
+            srcDirs += "src/test/java"
+        }
+    }
+}
+
 processResources
 {
     inputs.property "version", project.version

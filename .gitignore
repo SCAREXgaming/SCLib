@@ -60,3 +60,4 @@ bin/
 .settings/
 private.properties
 CHANGELOG.html
+test/
