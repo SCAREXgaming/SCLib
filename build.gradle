@@ -106,7 +106,6 @@ configurations {
     optionalCompile
     sourceCompile.extendsFrom(optionalCompile)
     srcCompiled
-    compile.extendsFrom(srcCompiled)
 }
 
 dependencies {

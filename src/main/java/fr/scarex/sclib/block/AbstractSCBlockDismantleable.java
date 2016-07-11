@@ -47,24 +47,21 @@ public abstract class AbstractSCBlockDismantleable extends AbstractSCBlock imple
         return dismantleBlock(null, getItemStackTag(world, x, y, z), world, x, y, z, false, true);
     }
 
-    public ArrayList<ItemStack> dismantleBlock(EntityPlayer paramEntityPlayer, NBTTagCompound paramNBTTagCompound, World paramWorld, int paramInt1, int paramInt2, int paramInt3, boolean paramBoolean1, boolean paramBoolean2) {
-        int i = paramWorld.getBlockMetadata(paramInt1, paramInt2, paramInt3);
-
+    public ArrayList<ItemStack> dismantleBlock(EntityPlayer player, NBTTagCompound nbtComp, World world, int x, int y, int z, boolean returnDrops, boolean paramBoolean2) {
+        int i = world.getBlockMetadata(x, y, z);
         ItemStack localItemStack = new ItemStack(this, 1, i);
-        if (paramNBTTagCompound != null) {
-            localItemStack.setTagCompound(paramNBTTagCompound);
-        }
+        if (nbtComp != null) localItemStack.setTagCompound(nbtComp);
         if (!paramBoolean2) {
-            paramWorld.setBlockToAir(paramInt1, paramInt2, paramInt3);
-            if (!paramBoolean1) {
+            world.setBlockToAir(x, y, z);
+            if (!returnDrops) {
                 float f = 0.3F;
-                double d1 = paramWorld.rand.nextFloat() * f + (1.0F - f) * 0.5D;
-                double d2 = paramWorld.rand.nextFloat() * f + (1.0F - f) * 0.5D;
-                double d3 = paramWorld.rand.nextFloat() * f + (1.0F - f) * 0.5D;
-                EntityItem localEntityItem = new EntityItem(paramWorld, paramInt1 + d1, paramInt2 + d2, paramInt3 + d3, localItemStack);
+                double d1 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+                double d2 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+                double d3 = world.rand.nextFloat() * f + (1.0F - f) * 0.5D;
+                EntityItem localEntityItem = new EntityItem(world, x + d1, y + d2, z + d3, localItemStack);
                 localEntityItem.delayBeforeCanPickup = 10;
-                paramWorld.spawnEntityInWorld(localEntityItem);
-                if (paramEntityPlayer != null) CoreUtils.dismantleLog(paramEntityPlayer.getCommandSenderName(), this, i, paramInt1, paramInt2, paramInt3);
+                world.spawnEntityInWorld(localEntityItem);
+                if (player != null) CoreUtils.dismantleLog(player.getCommandSenderName(), this, i, x, y, z);
             }
         }
         ArrayList localArrayList = new ArrayList();
