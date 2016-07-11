@@ -22,7 +22,7 @@ plugins {
 }
 
 apply plugin: 'forge'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'co.riiid.gradle'
 
 group = "com.github.SCAREXgaming"
@@ -80,14 +80,46 @@ repositories {
         name "CoFHCore"
         artifactPattern 'http://addons-origin.cursecdn.com/files/2283/118/[module]-[revision].[ext]'
     }
+    ivy {
+        name "Mekanism"
+        artifactPattern "http://aidancbrady.com/wp-content/uploads/mekanism/${mekanism_version_revision}-recommended/[module]-[revision](-[classifier])(.[ext])"
+    }
+}
+
+configurations {
+    api
 }
 
 dependencies {
     compile "codechicken:CodeChickenCore:${mc_version}-${ccc_version}:dev"
     compile "codechicken:CodeChickenLib:${mc_version}-${ccl_version}:dev"
+    compile "codechicken:NotEnoughItems:${mc_version}-${nei_version}:dev"
+    compile "codechicken:ForgeMultipart:${mc_version}-${fmp_version}:dev"
     compile "mcp.mobius.waila:Waila:${waila_version}_${mc_version}"
     compile "cofh:CoFHCore:[${mc_version}]${cofhcore_version}"
+    api "aidancbrady:MDK:${mc_version}-${mekanism_version}.${mekanism_version_revision}@zip"
+    runtime "aidancbrady:Mekanism:${mc_version}-${mekanism_version}.${mekanism_version_revision}"
 }
+
+
+// API extracting
+sourceSets {
+    api {
+        java {
+            srcDirs += "src/api/java"
+        }
+    }
+}
+
+task extractAPIs(type: Copy) {
+    outputs.upToDateWhen { false }
+    delete "src/api"
+    from configurations.api.collect {
+        it.isDirectory() ? it : zipTree(it)
+    }
+    into "src/api/java"
+}
+tasks.eclipseClasspath.dependsOn "extractAPIs"
 
 
 // Changelog
@@ -142,5 +174,26 @@ if (file('private.properties').exists()) {
             "build/libs/${archivesBaseName}-${version}-dev.jar",
             "build/libs/${archivesBaseName}-${version}.jar"
         ]
+    }
+}
+
+
+// Maven publishing
+publishing {
+    publications {
+        universal(MavenPublication) {
+            artifact jar
+        }
+        dev(MavenPublication) {
+            artifact deobfJar
+        }
+        sources(MavenPublication) {
+            artifact sourceJar
+        }
+    }
+    repositories {
+       maven {
+           url "$buildDir/repo"
+       }
     }
 }
