@@ -88,17 +88,18 @@ repositories {
 
 configurations {
     api
+    optionalCompile
+    compile.extendsFrom(optionalCompile)
 }
 
 dependencies {
-    compile "codechicken:CodeChickenCore:${mc_version}-${ccc_version}:dev"
-    compile "codechicken:CodeChickenLib:${mc_version}-${ccl_version}:dev"
-    compile "codechicken:NotEnoughItems:${mc_version}-${nei_version}:dev"
-    compile "codechicken:ForgeMultipart:${mc_version}-${fmp_version}:dev"
-    compile "mcp.mobius.waila:Waila:${waila_version}_${mc_version}"
-    compile "cofh:CoFHCore:[${mc_version}]${cofhcore_version}"
-    api "aidancbrady:MDK:${mc_version}-${mekanism_version}.${mekanism_version_revision}@zip"
-    runtime "aidancbrady:Mekanism:${mc_version}-${mekanism_version}.${mekanism_version_revision}"
+    optionalCompile "codechicken:CodeChickenCore:${mc_version}-${ccc_version}:dev"
+    optionalCompile "codechicken:CodeChickenLib:${mc_version}-${ccl_version}:dev"
+    optionalCompile "codechicken:NotEnoughItems:${mc_version}-${nei_version}:dev"
+    optionalCompile "codechicken:ForgeMultipart:${mc_version}-${fmp_version}:dev"
+    optionalCompile "mcp.mobius.waila:Waila:${waila_version}_${mc_version}"
+    optionalCompile "cofh:CoFHCore:[${mc_version}]${cofhcore_version}"
+    optionalCompile "aidancbrady:Mekanism:${mc_version}-${mekanism_version}.${mekanism_version_revision}"
 }
 
 
@@ -182,18 +183,25 @@ if (file('private.properties').exists()) {
 publishing {
     publications {
         universal(MavenPublication) {
-            artifact jar
-        }
-        dev(MavenPublication) {
+            from components.java
             artifact deobfJar
-        }
-        sources(MavenPublication) {
             artifact sourceJar
+            
+            pom.withXml {
+                asNode().dependencies.dependency.each { dep ->
+                    def found = false
+                    configurations.optionalCompile.getDependencies().each { confDep ->
+                        if (dep.groupId.text().equals(confDep.getGroup()) && dep.artifactId.text().equals(confDep.getName())) {
+                            dep.appendNode('optional', true)
+                            found = true
+                            return
+                        }
+                    }
+                    if (found) {
+                        return
+                    }
+                }
+            }
         }
-    }
-    repositories {
-       maven {
-           url "$buildDir/repo"
-       }
     }
 }
