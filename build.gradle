@@ -181,40 +181,34 @@ if (file('private.properties').exists()) {
 
 
 // Maven publishing
-/*publishing {
+publishing {
     publications {
         universal(MavenPublication) {
             from components.java
             artifact deobfJar
             artifact sourceJar
-            
-            pom.withXml {
-                asNode().dependencies.dependency.each { dep ->
-                    def found = false
-                    configurations.optionalCompile.getDependencies().each { confDep ->
-                        if (dep.groupId.text().equals(confDep.getGroup()) && dep.artifactId.text().equals(confDep.getName())) {
-                            dep.appendNode('optional', true)
-                            found = true
-                            return
-                        }
-                    }
-                    if (found) {
-                        return
-                    }
-                }
-            }
         }
     }
-}*/
+}
+
 def optDependencies = configurations.optionalCompile.getDependencies()
+def allDep = configurations.compile.allDependencies
 install {
     repositories.mavenInstaller {
         pom.whenConfigured { pom ->
-            optDependencies.each { confDep ->
-                pom.dependencies.findAll {dep ->
-                    dep.groupdId == confDep.getGroup() && dep.artifactId == confDep.getName()
-                }.each {
-                    it.optional = true
+            pom.withXml {
+                def depsNode = asNode().appendNode('dependencies')
+                allDep.each {
+                    if (it.name != null && it.version != null) {
+                        def depNode = depsNode.appendNode('dependency')
+                        depNode.appendNode('groupId', it.group)
+                        depNode.appendNode('artifactId', it.name)
+                        depNode.appendNode('version', it.version)
+                        depNode.appendNode('scope', 'compile')
+                        if (optDependencies.contains(it)) {
+                            depNode.appendNode('optional', true)
+                        }
+                    }
                 }
             }
         }
