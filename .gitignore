@@ -54,10 +54,10 @@ $RECYCLE.BIN/
 # Custom
 eclipse/
 .project
-.gradle/
 .classpath
 bin/
 .settings/
 private.properties
 CHANGELOG.html
 test/
+src/api

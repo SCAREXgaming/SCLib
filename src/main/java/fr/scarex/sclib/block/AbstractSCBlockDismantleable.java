@@ -3,6 +3,7 @@ package fr.scarex.sclib.block;
 import java.util.ArrayList;
 
 import cofh.api.block.IDismantleable;
+import cofh.api.item.IToolHammer;
 import cofh.core.util.CoreUtils;
 import fr.scarex.sclib.tileentity.AbstractSCTileEntity;
 import net.minecraft.block.Block;
@@ -47,7 +48,6 @@ public abstract class AbstractSCBlockDismantleable extends AbstractSCBlock imple
     }
 
     public ArrayList<ItemStack> dismantleBlock(EntityPlayer paramEntityPlayer, NBTTagCompound paramNBTTagCompound, World paramWorld, int paramInt1, int paramInt2, int paramInt3, boolean paramBoolean1, boolean paramBoolean2) {
-        TileEntity localTileEntity = paramWorld.getTileEntity(paramInt1, paramInt2, paramInt3);
         int i = paramWorld.getBlockMetadata(paramInt1, paramInt2, paramInt3);
 
         ItemStack localItemStack = new ItemStack(this, 1, i);
@@ -125,5 +125,14 @@ public abstract class AbstractSCBlockDismantleable extends AbstractSCBlock imple
     @Override
     public boolean canDismantle(EntityPlayer arg0, World arg1, int arg2, int arg3, int arg4) {
         return true;
+    }
+
+    @Override
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
+        if (player.isSneaking() && player.getCurrentEquippedItem() != null && player.getCurrentEquippedItem().getItem() instanceof IToolHammer && ((IToolHammer) player.getCurrentEquippedItem().getItem()).isUsable(player.getCurrentEquippedItem(), player, x, y, z)) {
+            this.dismantleBlock(player, world, x, y, z, false);
+            return true;
+        }
+        return false;
     }
 }

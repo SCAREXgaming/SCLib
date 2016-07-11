@@ -79,7 +79,19 @@ repositories {
     }
     ivy {
         name "CoFHCore"
-        artifactPattern 'http://addons-origin.cursecdn.com/files/2283/118/[module]-[revision].[ext]'
+        artifactPattern 'http://addons-origin.cursecdn.com/files/2283/118/[module]-[revision](-[classifier])(.[ext])'
+    }
+    ivy {
+        name "ThermalFoundation"
+        artifactPattern 'http://addons-origin.cursecdn.com/files/2300/429/[module]-[revision](-[classifier])(.[ext])'
+    }
+    ivy {
+        name "ThermalExpansion"
+        artifactPattern 'http://addons-origin.cursecdn.com/files/2282/512/[module]-[revision](-[classifier])(.[ext])'
+    }
+    ivy {
+        name "ThermalDynamics"
+        artifactPattern 'http://addons-origin.cursecdn.com/files/2300/431/[module]-[revision](-[classifier])(.[ext])'
     }
     ivy {
         name "Mekanism"
@@ -89,17 +101,25 @@ repositories {
 
 configurations {
     api
+    sourceCompile
+    compile.extendsFrom(sourceCompile)
     optionalCompile
-    compile.extendsFrom(optionalCompile)
+    sourceCompile.extendsFrom(optionalCompile)
+    srcCompiled
+    compile.extendsFrom(srcCompiled)
 }
 
 dependencies {
     optionalCompile "codechicken:CodeChickenCore:${mc_version}-${ccc_version}:dev"
     optionalCompile "codechicken:CodeChickenLib:${mc_version}-${ccl_version}:dev"
     optionalCompile "codechicken:NotEnoughItems:${mc_version}-${nei_version}:dev"
-    optionalCompile "codechicken:ForgeMultipart:${mc_version}-${fmp_version}:dev"
     optionalCompile "mcp.mobius.waila:Waila:${waila_version}_${mc_version}"
+    optionalCompile "codechicken:ForgeMultipart:${mc_version}-${fmp_version}:dev"
     optionalCompile "cofh:CoFHCore:[${mc_version}]${cofhcore_version}"
+    optionalCompile "cofh:ThermalFoundation:[${mc_version}]${tf_version}"
+    optionalCompile "cofh:ThermalExpansion:[${mc_version}]${te_version}"
+    optionalCompile "cofh:ThermalDynamics:[${mc_version}]${td_version}"
+    api "aidancbrady:MDK:${mc_version}-${mekanism_version}.${mekanism_version_revision}@zip"
     optionalCompile "aidancbrady:Mekanism:${mc_version}-${mekanism_version}.${mekanism_version_revision}"
 }
 
@@ -123,6 +143,44 @@ task extractAPIs(type: Copy) {
 }
 tasks.eclipseClasspath.dependsOn "extractAPIs"
 
+// Generating sources
+task generateSources {
+    configurations.sourceCompile.getAllDependencies().each {
+        dependencies.srcCompiled group: it.getGroup(), name: it.getName(), version: it.getVersion(), ext: 'jar', classifier: 'src'
+    }
+}
+
+eclipse.classpath.minusConfigurations += [ configurations.srcCompiled ]
+eclipse.classpath.file {
+    withXml {
+        def rootNode = it.asNode()
+        rootNode.each { node ->
+            if (node.attribute('kind') == 'lib' && node.attribute('sourcepath') == null && configurations.sourceCompile.contains(file(node.attribute('path')))) {
+                configurations.sourceCompile.resolvedConfiguration.resolvedArtifacts.each { ra ->
+                    def found = false
+                    if (ra.getFile().equals(file(node.attribute('path')))) {
+                        configurations.srcCompiled.resolvedConfiguration.resolvedArtifacts.each {
+                            try {
+                                it.file
+                            } catch (e) {
+                                return
+                            }
+                            if(it.getModuleVersion().getId() == ra.getModuleVersion().getId()) {
+                                node.@sourcepath = it.file.getAbsolutePath()
+                                found = true
+                                return
+                            }
+                        }
+                    }
+                    if (found) {
+                        return
+                    }
+                }
+            }
+        }
+    }
+}
+tasks.eclipseClasspath.dependsOn 'generateSources'
 
 // Changelog
 plugins.withType(se.bjurr.gitchangelog.plugin.gradle.GitChangelogGradlePlugin.class) {
