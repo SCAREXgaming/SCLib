@@ -68,6 +68,7 @@ processResources
 // Dependencies
 repositories {
     mavenCentral()
+    mavenLocal()
     maven {
         name 'CB Repo'
         url "http://chickenbones.net/maven/"
@@ -180,7 +181,7 @@ if (file('private.properties').exists()) {
 
 
 // Maven publishing
-publishing {
+/*publishing {
     publications {
         universal(MavenPublication) {
             from components.java
@@ -200,6 +201,20 @@ publishing {
                     if (found) {
                         return
                     }
+                }
+            }
+        }
+    }
+}*/
+def optDependencies = configurations.optionalCompile.getDependencies()
+install {
+    repositories.mavenInstaller {
+        pom.whenConfigured { pom ->
+            optDependencies.each { confDep ->
+                pom.dependencies.findAll {dep ->
+                    dep.groupdId == confDep.getGroup() && dep.artifactId == confDep.getName()
+                }.each {
+                    it.optional = true
                 }
             }
         }
