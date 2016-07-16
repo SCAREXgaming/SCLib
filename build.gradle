@@ -2,6 +2,7 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
+        mavenLocal()
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
@@ -19,6 +20,7 @@ buildscript {
 
 plugins {
 	id "se.bjurr.gitchangelog.git-changelog-gradle-plugin" version "1.32"
+    id "fr.scarex.fcgp" version "1.0.2"
 }
 
 apply plugin: 'forge'
@@ -27,6 +29,7 @@ apply plugin: 'co.riiid.gradle'
 
 group = "com.github.SCAREXgaming"
 archivesBaseName = "SCLib"
+version = "${mc_version}-${mod_version}"
 
 minecraft {
     version = "${mc_version}-${forge_version}"
@@ -188,6 +191,11 @@ plugins.withType(se.bjurr.gitchangelog.plugin.gradle.GitChangelogGradlePlugin.cl
         untaggedName = "Current release ${project.version}"
         templateContent = file('changelog.mustache').getText('UTF-8')
     }
+}
+
+forgeChangelog {
+    destination = file("D:/Projets/SCAREXgaming.github.io/changelog-${archivesBaseName}.json")
+    homepage = "http://github.com/SCAREXgaming/SCLib/releases"
 }
 
 // Artifacts
