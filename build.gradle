@@ -132,7 +132,7 @@ sourceSets {
     }
 }
 
-task extractAPIs(type: Copy) {
+task extractAPIs(type: Sync) {
     outputs.upToDateWhen { false }
     delete "src/api"
     from configurations.api.collect {
