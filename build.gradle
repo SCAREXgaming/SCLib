@@ -19,7 +19,7 @@ buildscript {
 }
 
 plugins {
-	id "se.bjurr.gitchangelog.git-changelog-gradle-plugin" version "1.32"
+    id "se.bjurr.gitchangelog.git-changelog-gradle-plugin" version "1.32"
     id "fr.scarex.fcgp" version "1.0.2"
 }
 
