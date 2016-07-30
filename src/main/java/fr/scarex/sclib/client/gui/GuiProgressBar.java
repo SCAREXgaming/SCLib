@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 /**
  * @author SCAREX
@@ -59,9 +59,9 @@ public class GuiProgressBar extends Gui
 
             this.drawGradientRect(this.x + this.outlineWidth, this.y + this.outlineWidth, (int) Math.max((double) this.x + (this.currentSize * this.width) / (this.maxSize == 0 ? 1 : this.maxSize) - this.outlineWidth, this.x + this.outlineWidth), this.y + this.height - this.outlineWidth, color, new Color(color).darker().getRGB());
 
-            if (this.displayString != null && !this.displayString.isEmpty()) this.drawCenteredString(mc.fontRenderer, mc.fontRenderer.trimStringToWidth(this.displayString, this.width - 4), this.x + this.width / 2, this.y + (this.height - 8) / 2, this.stringColor);
+            if (this.displayString != null && !this.displayString.isEmpty()) this.drawCenteredString(mc.fontRendererObj, mc.fontRendererObj.trimStringToWidth(this.displayString, this.width - 4), this.x + this.width / 2, this.y + (this.height - 8) / 2, this.stringColor);
 
-            if (this.isMousehover(mouseX, mouseY)) this.drawHoveringText(mc.currentScreen, Arrays.asList((this.isFinished() ? EnumChatFormatting.GREEN : EnumChatFormatting.WHITE).toString() + this.currentSize + " / " + this.maxSize), mouseX, mouseY, mc.fontRenderer);
+            if (this.isMousehover(mouseX, mouseY)) this.drawHoveringText(mc.currentScreen, Arrays.asList((this.isFinished() ? TextFormatting.GREEN : TextFormatting.WHITE).toString() + this.currentSize + " / " + this.maxSize), mouseX, mouseY, mc.fontRendererObj);
         }
     }
 

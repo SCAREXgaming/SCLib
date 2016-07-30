@@ -3,7 +3,7 @@ package fr.scarex.sclib.client.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.settings.GameSettings;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 /**
  * @author SCAREX
@@ -55,7 +55,7 @@ public class GuiButtonKeyBinding extends GuiButton
 
     public void updateDisplayName() {
         if (this.inModification)
-            this.displayString = EnumChatFormatting.WHITE + "> " + EnumChatFormatting.YELLOW + GameSettings.getKeyDisplayString(this.key) + EnumChatFormatting.WHITE + " <";
+            this.displayString = TextFormatting.WHITE + "> " + TextFormatting.YELLOW + GameSettings.getKeyDisplayString(this.key) + TextFormatting.WHITE + " <";
         else
             this.displayString = GameSettings.getKeyDisplayString(this.key);
     }

@@ -3,24 +3,24 @@ package fr.scarex.sclib.block;
 import java.util.ArrayList;
 import java.util.List;
 
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.event.FMLInterModComms;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import fr.scarex.sclib.IRegister;
-import fr.scarex.sclib.client.ClientProxy;
 import fr.scarex.sclib.tileentity.AbstractSCTileEntity;
 import fr.scarex.sclib.tileentity.IOwneable;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.event.FMLInterModComms;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 /**
  * @author SCAREX
@@ -36,7 +36,8 @@ public abstract class AbstractSCBlock extends Block implements IRegister
 
     @Override
     public void register() {
-        GameRegistry.registerBlock(this, this.getItemBlock(), this.getName());
+        GameRegistry.register(this);
+        GameRegistry.register(this.getItemBlock().setRegistryName(this.getRegistryName()));
         if (this.getTileEntityClass() != null) {
             GameRegistry.registerTileEntity(this.getTileEntityClass(), this.getName());
         } else {
@@ -56,24 +57,18 @@ public abstract class AbstractSCBlock extends Block implements IRegister
     }
 
     @Override
-    public boolean hasTileEntity(int metadata) {
+    public boolean hasTileEntity(IBlockState state) {
         return this.getTileEntityClass() != null;
     }
 
     @Override
     public void init() {
         this.modid = Loader.instance().activeModContainer().getModId();
-        this.setBlockName(this.getName());
+        this.setRegistryName(modid, this.getName());
     }
 
-    public Class<? extends ItemBlock> getItemBlock() {
-        return ItemBlock.class;
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public int getRenderType() {
-        return this.hasSpecialRender() ? ClientProxy.renderId : super.getRenderType();
+    public ItemBlock getItemBlock() {
+        return new ItemBlock(this);
     }
 
     public boolean hasSpecialRender() {
@@ -81,16 +76,11 @@ public abstract class AbstractSCBlock extends Block implements IRegister
     }
 
     @Override
-    protected String getTextureName() {
-        return this.hasSpecialRender() ? "" : modid + ":" + this.getName();
-    }
-
-    @Override
     public void registerCrafts() {}
 
     @Override
-    public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase player, ItemStack stack) {
-        if (stack.getTagCompound() != null && world.getTileEntity(x, y, z) instanceof AbstractSCTileEntity) ((AbstractSCTileEntity) world.getTileEntity(x, y, z)).readExtraCompound(stack.getTagCompound());
+    public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase player, ItemStack stack) {
+        if (stack.getTagCompound() != null && world.getTileEntity(pos) instanceof AbstractSCTileEntity) ((AbstractSCTileEntity) world.getTileEntity(pos)).readExtraCompound(stack.getTagCompound());
     }
 
     public List<ItemStack> getAllItemStacks() {
@@ -100,16 +90,16 @@ public abstract class AbstractSCBlock extends Block implements IRegister
     }
 
     @Override
-    public void onNeighborBlockChange(World world, int x, int y, int z, Block block) {
-        TileEntity ent = world.getTileEntity(x, y, z);
+    public void onNeighborChange(IBlockAccess world, BlockPos pos, BlockPos neighbor) {
+        TileEntity ent = world.getTileEntity(pos);
         if (ent instanceof AbstractSCTileEntity) {
             AbstractSCTileEntity te = (AbstractSCTileEntity) ent;
-            te.onNeighborBlockChange(block);
+            te.onNeighborBlockChange(neighbor);
         }
     }
 
     @Override
-    public float getPlayerRelativeBlockHardness(EntityPlayer player, World world, int x, int y, int z) {
-        return world.getTileEntity(x, y, z) instanceof IOwneable ? (((IOwneable) world.getTileEntity(x, y, z)).isOwner(player.getUniqueID()) ? ForgeHooks.blockStrength(this, player, world, x, y, z) : 0F) : super.getPlayerRelativeBlockHardness(player, world, x, y, z);
+    public float getPlayerRelativeBlockHardness(IBlockState state, EntityPlayer player, World world, BlockPos pos) {
+        return world.getTileEntity(pos) instanceof IOwneable ? (((IOwneable) world.getTileEntity(pos)).isOwner(player.getUniqueID()) ? ForgeHooks.blockStrength(state, player, world, pos) : 0F) : ForgeHooks.blockStrength(state, player, world, pos);
     }
 }

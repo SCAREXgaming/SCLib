@@ -7,13 +7,9 @@ buildscript {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
         }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
         classpath 'co.riiid:gradle-github-plugin:0.4.2'
     }
 }
@@ -23,17 +19,20 @@ plugins {
     id "fr.scarex.fcgp" version "1.0.2"
 }
 
-apply plugin: 'forge'
+apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 apply plugin: 'co.riiid.gradle'
 
 group = "com.github.SCAREXgaming"
 archivesBaseName = "SCLib"
 version = "${mc_version}-${mod_version}"
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 minecraft {
     version = "${mc_version}-${forge_version}"
     runDir = "eclipse"
+    mappings = mappings_date
     
     project.ext.getProperties().each { k, v ->
         replace "@${k.toUpperCase()}@", v
@@ -72,57 +71,50 @@ processResources
 repositories {
     mavenCentral()
     mavenLocal()
-    maven {
-        name 'CB Repo'
-        url "http://chickenbones.net/maven/"
+    ivy {
+        url 'https://github.com/'
+        layout 'pattern', {
+            artifact '/[organisation]/[module]/archive/[revision].[ext]'
+        }
     }
     maven {
         name 'ProfMobius Repo'
         url "http://mobiusstrip.eu/maven/"
-    }
-    ivy {
-        name "CoFHCore"
-        artifactPattern 'http://addons-origin.cursecdn.com/files/2283/118/[module]-[revision](-[classifier])(.[ext])'
-    }
-    ivy {
-        name "ThermalFoundation"
-        artifactPattern 'http://addons-origin.cursecdn.com/files/2300/429/[module]-[revision](-[classifier])(.[ext])'
-    }
-    ivy {
-        name "ThermalExpansion"
-        artifactPattern 'http://addons-origin.cursecdn.com/files/2282/512/[module]-[revision](-[classifier])(.[ext])'
-    }
-    ivy {
-        name "ThermalDynamics"
-        artifactPattern 'http://addons-origin.cursecdn.com/files/2300/431/[module]-[revision](-[classifier])(.[ext])'
-    }
-    ivy {
-        name "Mekanism"
-        artifactPattern "http://aidancbrady.com/wp-content/uploads/mekanism/${mekanism_version_revision}-recommended/[module]-[revision](-[classifier])(.[ext])"
-    }
+   }
 }
 
 configurations {
     api
-    sourceCompile
-    compile.extendsFrom(sourceCompile)
-    optionalCompile
-    sourceCompile.extendsFrom(optionalCompile)
-    srcCompiled
 }
 
 dependencies {
-    optionalCompile "codechicken:CodeChickenCore:${mc_version}-${ccc_version}:dev"
-    optionalCompile "codechicken:CodeChickenLib:${mc_version}-${ccl_version}:dev"
-    optionalCompile "codechicken:NotEnoughItems:${mc_version}-${nei_version}:dev"
-    optionalCompile "mcp.mobius.waila:Waila:${waila_version}_${mc_version}"
-    optionalCompile "codechicken:ForgeMultipart:${mc_version}-${fmp_version}:dev"
-    optionalCompile "cofh:CoFHCore:[${mc_version}]${cofhcore_version}"
-    optionalCompile "cofh:ThermalFoundation:[${mc_version}]${tf_version}"
-    optionalCompile "cofh:ThermalExpansion:[${mc_version}]${te_version}"
-    optionalCompile "cofh:ThermalDynamics:[${mc_version}]${td_version}"
-    api "aidancbrady:MDK:${mc_version}-${mekanism_version}.${mekanism_version_revision}@zip"
-    optionalCompile "aidancbrady:Mekanism:${mc_version}-${mekanism_version}.${mekanism_version_revision}"
+    // api "CoFH:RedstoneFlux-API:master@zip"
+    compile "mcp.mobius.waila:Waila:${waila_version}_1.9.4:dev"
+}
+
+// Artifacts
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'dev'
+}
+
+artifacts {
+    archives deobfJar
+    archives sourceJar
+    archives jar
+}
+tasks.assemble.dependsOn('deobfJar', 'sourceJar')
+
+
+// Maven publishing
+publishing {
+    publications {
+        universal(MavenPublication) {
+            from components.java
+            artifact deobfJar
+            artifact sourceJar
+        }
+    }
 }
 
 
@@ -135,54 +127,29 @@ sourceSets {
     }
 }
 
-task extractAPIs(type: Sync) {
-    outputs.upToDateWhen { false }
-    delete "src/api"
+task extractFiles(type: Copy, dependsOn: configurations.api) {
+    doFirst {
+        delete "src/api"
+    }
     from configurations.api.collect {
         it.isDirectory() ? it : zipTree(it)
     }
-    into "src/api/java"
-}
-tasks.eclipseClasspath.dependsOn "extractAPIs"
-
-// Generating sources
-task generateSources {
-    configurations.sourceCompile.getAllDependencies().each {
-        dependencies.srcCompiled group: it.getGroup(), name: it.getName(), version: it.getVersion(), ext: 'jar', classifier: 'src'
-    }
+    into "src/api/tmp/"
 }
 
-eclipse.classpath.minusConfigurations += [ configurations.srcCompiled ]
-eclipse.classpath.file {
-    withXml {
-        def rootNode = it.asNode()
-        rootNode.each { node ->
-            if (node.attribute('kind') == 'lib' && node.attribute('sourcepath') == null && configurations.sourceCompile.contains(file(node.attribute('path')))) {
-                configurations.sourceCompile.resolvedConfiguration.resolvedArtifacts.each { ra ->
-                    def found = false
-                    if (ra.getFile().equals(file(node.attribute('path')))) {
-                        configurations.srcCompiled.resolvedConfiguration.resolvedArtifacts.each {
-                            try {
-                                it.file
-                            } catch (e) {
-                                return
-                            }
-                            if(it.getModuleVersion().getId() == ra.getModuleVersion().getId()) {
-                                node.@sourcepath = it.file.getAbsolutePath()
-                                found = true
-                                return
-                            }
-                        }
-                    }
-                    if (found) {
-                        return
-                    }
-                }
-            }
+task extractAPI(type: Copy, dependsOn: extractFiles) {
+    configurations.api.resolvedConfiguration.resolvedArtifacts.each {
+        def name = it.name + "_api"
+        if (project.properties.containsKey(name)) {
+            from "src/api/tmp/" + project[name]
+            into "src/api/java"
         }
     }
+    doLast {
+        delete "src/api/tmp/"
+    }
 }
-tasks.eclipseClasspath.dependsOn 'generateSources'
+tasks.eclipseClasspath.dependsOn "extractAPI"
 
 // Changelog
 plugins.withType(se.bjurr.gitchangelog.plugin.gradle.GitChangelogGradlePlugin.class) {
@@ -197,25 +164,6 @@ forgeChangelog {
     destination = file("D:/Projets/SCAREXgaming.github.io/changelog-${archivesBaseName}.json")
     homepage = "http://github.com/SCAREXgaming/SCLib/releases"
 }
-
-// Artifacts
-task deobfJar(type: Jar) {
-    from sourceSets.main.output
-    classifier = 'dev'
-}
-
-task sourceJar(type: Jar) {
-    from sourceSets.main.allSource
-    classifier = 'sources'
-}
-
-artifacts {
-    archives deobfJar
-    archives sourceJar
-    archives jar
-}
-
-tasks.assemble.dependsOn('deobfJar', 'sourceJar')
 
 
 if (file('private.properties').exists()) {
@@ -241,41 +189,5 @@ if (file('private.properties').exists()) {
             "build/libs/${archivesBaseName}-${version}-dev.jar",
             "build/libs/${archivesBaseName}-${version}.jar"
         ]
-    }
-}
-
-
-// Maven publishing
-publishing {
-    publications {
-        universal(MavenPublication) {
-            from components.java
-            artifact deobfJar
-            artifact sourceJar
-        }
-    }
-}
-
-def optDependencies = configurations.optionalCompile.getDependencies()
-def allDep = configurations.compile.allDependencies
-install {
-    repositories.mavenInstaller {
-        pom.whenConfigured { pom ->
-            pom.withXml {
-                def depsNode = asNode().appendNode('dependencies')
-                allDep.each {
-                    if (it.name != null && it.version != null) {
-                        def depNode = depsNode.appendNode('dependency')
-                        depNode.appendNode('groupId', it.group)
-                        depNode.appendNode('artifactId', it.name)
-                        depNode.appendNode('version', it.version)
-                        depNode.appendNode('scope', 'compile')
-                        if (optDependencies.contains(it)) {
-                            depNode.appendNode('optional', true)
-                        }
-                    }
-                }
-            }
-        }
     }
 }

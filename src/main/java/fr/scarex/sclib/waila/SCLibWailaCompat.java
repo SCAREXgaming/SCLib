@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
@@ -58,8 +59,8 @@ public class SCLibWailaCompat implements IWailaDataProvider
     }
 
     @Override
-    public NBTTagCompound getNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world, int x, int y, int z) {
-        if (te instanceof AbstractSCTileEntity) tag = ((AbstractSCTileEntity) te).getWailaNBTData(player, te, tag, world, x, y, z);
+    public NBTTagCompound getNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world, BlockPos pos) {
+        if (te instanceof AbstractSCTileEntity) tag = ((AbstractSCTileEntity) te).getWailaNBTData(player, te, tag, world, pos);
         return tag;
     }
 }

@@ -4,13 +4,12 @@ import java.util.List;
 
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 
 /**
@@ -19,14 +18,14 @@ import net.minecraft.world.World;
  */
 public class AbstractSCTileEntity extends TileEntity
 {
-    public NBTTagCompound getWailaNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world, int x, int y, int z) {
-        if (this instanceof IInventory) {
-            tag.setBoolean("HasCustomName", ((IInventory) this).hasCustomInventoryName());
-            if (((IInventory) this).hasCustomInventoryName()) tag.setString("CustomName", ((IInventory) this).getInventoryName());
+    public NBTTagCompound getWailaNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world, BlockPos pos) {
+        if (this instanceof ITileName) {
+            tag.setBoolean("HasCustomName", ((ITileName) this).hasCustomInventoryName());
+            if (((ITileName) this).hasCustomInventoryName()) tag.setString("CustomName", ((ITileName) this).getInventoryName());
         }
         return tag;
     }
-    
+
     public ItemStack getWailaStack(IWailaDataAccessor accessor, IWailaConfigHandler config) {
         return null;
     }
@@ -34,7 +33,7 @@ public class AbstractSCTileEntity extends TileEntity
     public List<String> getWailaHead(ItemStack itemStack, List<String> currenttip, IWailaDataAccessor accessor, IWailaConfigHandler config) {
         if (accessor.getNBTData().getBoolean("HasCustomName")) {
             currenttip.remove(0);
-            currenttip.add(0, EnumChatFormatting.WHITE + "" + EnumChatFormatting.ITALIC + accessor.getNBTData().getString("CustomName"));
+            currenttip.add(0, TextFormatting.WHITE + "" + TextFormatting.ITALIC + accessor.getNBTData().getString("CustomName"));
         }
         return currenttip;
     }
@@ -47,7 +46,7 @@ public class AbstractSCTileEntity extends TileEntity
         return currenttip;
     }
 
-    public void onNeighborBlockChange(Block block) {}
+    public void onNeighborBlockChange(BlockPos nieghbor) {}
 
     public void writeExtraCompound(NBTTagCompound comp) {}
 
