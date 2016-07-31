@@ -11,12 +11,13 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
  * @author SCAREX
  *
  */
-@Mod(modid = SCLib.MODID, name = SCLib.NAME, version = SCLib.VERSION)
+@Mod(modid = SCLib.MODID, name = SCLib.NAME, version = SCLib.VERSION, updateJSON = SCLib.UPDATE_JSON)
 public class SCLib
 {
     public static final String MODID = "sclib";
     public static final String NAME = "SCAREX Library";
     public static final String VERSION = "@VERSION@";
+    public static final String UPDATE_JSON = "https://raw.githubusercontent.com/SCAREXgaming/SCAREXgaming.github.io/master/changelog-SCLib.json";
     public static final boolean DEBUG = "@DEBUG@" == "@" + "DEBUG@";
     
     @Mod.Instance(SCLib.MODID)

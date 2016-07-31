@@ -23,9 +23,15 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'maven-publish'
 apply plugin: 'co.riiid.gradle'
 
+// Getting build number with git
+ext.buildnumber = 0
+try {
+    ext.buildnumber = "git rev-list --count HEAD".execute().text.trim()
+} catch (all) {}
+
 group = "com.github.SCAREXgaming"
 archivesBaseName = "SCLib"
-version = "${mc_version}-${mod_version}"
+version = "${mc_version}-${mod_version}.${buildnumber}"
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
@@ -46,6 +52,7 @@ sourceSets {
     test {
         java {
             srcDirs += "src/test/java"
+            srcDirs += "src/test/resources"
         }
     }
 }
@@ -85,10 +92,11 @@ repositories {
 
 configurations {
     api
+    apiCompile
 }
 
 dependencies {
-    // api "CoFH:RedstoneFlux-API:master@zip"
+    apiCompile "CoFH:RedstoneFlux-API:${rf_api_version}@zip"
     compile "mcp.mobius.waila:Waila:${waila_version}_1.9.4:dev"
 }
 
@@ -125,31 +133,65 @@ sourceSets {
             srcDirs += "src/api/java"
         }
     }
+    apiCompile {
+        java {
+            srcDirs += "src/apiCompile/java"
+        }
+    }
+    main {
+        java {
+            srcDirs += "src/apiCompile/java"
+        }
+    }
 }
 
-task extractFiles(type: Copy, dependsOn: configurations.api) {
-    doFirst {
+task extractAPI(dependsOn: configurations.api) << {
+    copy {
         delete "src/api"
-    }
-    from configurations.api.collect {
-        it.isDirectory() ? it : zipTree(it)
-    }
-    into "src/api/tmp/"
-}
+        delete "$buildDir/apiExtract"
 
-task extractAPI(type: Copy, dependsOn: extractFiles) {
+        from configurations.api.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+        into "$buildDir/apiExtract"
+    }
+    
     configurations.api.resolvedConfiguration.resolvedArtifacts.each {
         def name = it.name + "_api"
         if (project.properties.containsKey(name)) {
-            from "src/api/tmp/" + project[name]
-            into "src/api/java"
+            copy {
+                from "$buildDir/apiExtract/" + project[name]
+                into "src/api/java"
+            }
         }
     }
-    doLast {
-        delete "src/api/tmp/"
-    }
+    delete "$buildDir/apiExtract"
 }
-tasks.eclipseClasspath.dependsOn "extractAPI"
+
+task extractAPICompile(dependsOn: configurations.apiCompile) << {
+    copy {
+        delete "src/apiCompile"
+        delete "$buildDir/apiCompileExtract"
+
+        from configurations.apiCompile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+        into "$buildDir/apiCompileExtract"
+    }
+    
+    configurations.apiCompile.resolvedConfiguration.resolvedArtifacts.each {
+        def name = it.name + "_apiCompile"
+        if (project.properties.containsKey(name)) {
+            copy {
+                from "$buildDir/apiCompileExtract/" + project[name]
+                into "src/apiCompile/java"
+            }
+        }
+    }
+    delete "$buildDir/apiCompileExtract"
+}
+
+tasks.eclipseClasspath.dependsOn("extractAPI", "extractAPICompile")
 
 // Changelog
 plugins.withType(se.bjurr.gitchangelog.plugin.gradle.GitChangelogGradlePlugin.class) {
