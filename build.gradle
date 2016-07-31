@@ -225,6 +225,7 @@ if (file('private.properties').exists()) {
         repo = 'SCLib'
         token = privateConfig.github_token
         tagName = version
+        name = version
         assets = [
             "CHANGELOG.html",
             "build/libs/${archivesBaseName}-${version}-sources.jar",
