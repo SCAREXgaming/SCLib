@@ -33,7 +33,7 @@ public abstract class SCItemList
         }
     }
 
-    private <E extends AbstractSCItem> E addItem(E item) {
+    protected <E extends AbstractSCItem> E addItem(E item) {
         itemMap.put(item.getClass(), item);
         return item;
     }
