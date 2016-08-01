@@ -202,9 +202,11 @@ plugins.withType(se.bjurr.gitchangelog.plugin.gradle.GitChangelogGradlePlugin.cl
     }
 }
 
-forgeChangelog {
-    destination = file("D:/Projets/SCAREXgaming.github.io/changelog-${archivesBaseName}.json")
-    homepage = "http://github.com/SCAREXgaming/SCLib/releases"
+if (System.getenv("JITPACK") != "true") {
+    forgeChangelog {
+        destination = file("D:/Projets/SCAREXgaming.github.io/changelog-${archivesBaseName}.json")
+        homepage = "http://github.com/SCAREXgaming/SCLib/releases"
+    }
 }
 
 
